@@ -25,7 +25,7 @@ class Euler7(object):
                     try:
                         self.primes[j] = 0
                     except:
-                        print('offendign', j)
+                        print('offending', j)
                     j += i
 
 
