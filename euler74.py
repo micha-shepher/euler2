@@ -22,8 +22,13 @@ class Euler74(object):
 
 if __name__ == '__main__':
     e = Euler74()
-    for i in range(20, 30):
-        print(e.chain(i))
-    print(e.chains)
+    sixty = dict()
+    for i in range(1000000):
+        x = e.chain(i)
+        if x >= 60:
+            print(i)
+            sixty[i] = x
+    print('sixty = {}'.format(sixty))
+    print(len(sixty))
 
 
