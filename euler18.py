@@ -2,7 +2,7 @@ __author__ = 'mshepher'
 
 class Euler18(object):
     def __init__(self):
-        self.t = [[-1000]*15 for _ in range(15)]
+        self.t = []
         self.base = '''75
 95 64
 17 47 82
@@ -19,17 +19,20 @@ class Euler18(object):
 63 66 04 68 89 53 67 30 73 16 69 87 40 31
 04 62 98 27 23 09 70 98 73 93 38 53 60 04 23'''
         for r, row in enumerate(self.base.split('\n')):
+            l = list()
             for c, col in enumerate(row.split()):
-                self.t[r][c] =  int(col)
+                l.append(int(col))
+            self.t.append(l)
         for r in self.t:
             print(r)
-    def search(self, m, r, c):
 
-        if r == 14:
-            return self.t.
-        m = self.t + max(self.search(r+1, c), self.search(r+1, c+1))
-        return m
+    def search(self, r, c):
+        if r == len(self.t)-1:
+            return self.t[r][c]
+        else:
+            m = self.t[r][c] + max(self.search(r+1, c), self.search(r+1, c+1))
+            return m
 
 if __name__ == '__main__':
     e=Euler18()
-    print(e.search(-1000, 0, 0))
+    print(e.search(0, 0))
