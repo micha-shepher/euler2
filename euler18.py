@@ -1,3 +1,5 @@
+from time import time
+
 __author__ = 'mshepher'
 
 class Euler18(object):
@@ -25,14 +27,47 @@ class Euler18(object):
             self.t.append(l)
         for r in self.t:
             print(r)
+        self.tt = self.t[:4]
+        self.teller = 0
 
     def search(self, r, c):
+        """
+        brute force recursive algo
+        :param r: row
+        :param c: column
+        :return: greater of left or right triangles plus current
+        """
+        self.teller += 1
         if r == len(self.t)-1:
             return self.t[r][c]
         else:
             m = self.t[r][c] + max(self.search(r+1, c), self.search(r+1, c+1))
             return m
 
+    def resetteller(self):
+        self.teller = 0
+
+    def smart(self, t):
+        """
+        smart bottom to top, right to left algorithm
+        can be used to solve euler67
+        :return: sum of the heaviest root will find itself in t[0][0]
+        """
+        for r in range(len(t)-2, -1, -1):
+            for c in range(len(t[r])):
+                self.teller += 1
+                t[r][c] += max(t[r+1][c], t[r+1][c+1])
+            print(t[r])
+        return t[0][0]
+
 if __name__ == '__main__':
     e=Euler18()
+    t1 = time()
     print(e.search(0, 0))
+    print(time()-t1)
+    print(e.teller)
+    e.resetteller()
+    t2 = time()
+    print(e.smart(e.t))
+    print(time()-t2)
+    print(e.teller)
