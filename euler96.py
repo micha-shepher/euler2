@@ -1,6 +1,9 @@
 class BackTrack(Exception):
     pass
 
+class Ready(Exception):
+    pass
+
 class Sudoku(object):
     def __init__(self, sudoku=None):
         self.sudoku = sudoku
@@ -30,16 +33,16 @@ class Sudoku(object):
                 continue
             s = [j[col] for j in self.sudoku]
             for pos, elem in enumerate(s):
-                sq = pos // 3*3 + col // 3
+                sq = self.get_square(pos, col)
                 if elem == '0':
                     if i in self.rows[pos] or i in self.squares[sq]:
                         s[pos] = 'x'
             if s.count('0') == 1:
                 fixed = True
                 pos = s.index('0')
-                sq = pos // 3 * 3 + col // 3
+                sq = self.get_square(pos, col)
                 self.fixcol(sq, pos, col, i, 'col')
-            elif s.count('0'):
+            elif s.count('0') == 0:
                 raise BackTrack('fail {} at col {}'.format(i, col+1))
 
         return fixed
@@ -51,16 +54,16 @@ class Sudoku(object):
                 continue
             s = [i for i in self.sudoku[row]]
             for col, elem in enumerate(s):
-                sq = row // 3*3 + col // 3
+                sq = self.get_square(row, col)
                 if elem == '0':
                     if i in self.columns[col] or i in self.squares[sq]:
                         s[col] = 'x'
             if s.count('0') == 1:
                 fixed = True
                 col = s.index('0')
-                sq = row // 3 * 3 + col // 3
+                sq = self.get_square(row, col)
                 self.fixcol(sq, row, col, i, 'row')
-            elif s.count('0'):
+            elif s.count('0') == 0:
                 raise BackTrack('fail {} at row {}'.format(i, row+1))
         return fixed
 
@@ -69,7 +72,7 @@ class Sudoku(object):
         for r in range(9):
             for c in range(9):
                 if self.sudoku[r][c] == '0':
-                    sq = r // 3 * 3 + c // 3
+                    sq = self.get_square(r, c)
                     s = {i for i in list('123456789')}  # all possibilities
                     s -= self.rows[r]
                     s -= self.columns[c]
@@ -89,6 +92,11 @@ class Sudoku(object):
         self.squares[sq].add(i)
         self.rows[r].add(i)
         self.columns[c].add(i)
+        if self.solved():
+            raise Ready
+        #self.checksquare(sq)
+        #self.checkrow(r)
+        #self.checkcolumn(c)
 
     def fixcol(self, sq, r, c, i, rc):
         print(self)
@@ -98,6 +106,10 @@ class Sudoku(object):
         self.squares[sq].add(i)
         self.rows[r].add(i)
         self.columns[c].add(i)
+        if self.solved():
+            raise Ready
+        #self.checksquare(sq)
+        #self.checkrow(r)
 
     def fix(self, sq, r, c, i):
         rr = sq // 3 * 3 + r
@@ -110,6 +122,10 @@ class Sudoku(object):
         print(self.squares[sq])
         self.rows[rr].add(i)
         self.columns[cc].add(i)
+        if self.solved():
+            raise Ready
+        #self.checkrow(r)
+        #self.checkcolumn(c)
 
     def checksquare(self, sq):
         # this is going to limit the candidates
@@ -155,48 +171,65 @@ class Sudoku(object):
         rowchanges = [False for i in range(9)]
         colchanges = [False for i in range(9)]
         poschanges = [False]
-        while True:
-            for i in range(9):
-                changes[i] = self.checksquare(i)
-                colchanges[i] = self.checkcolumn(i)
-                rowchanges[i] = self.checkrow(i)
-            poschanges[0] = self.checkposition()  # all numbers
-            if True not in (changes + rowchanges + colchanges + poschanges):
-                break
-        if self.solved():
+        try:
+            while True:
+                for i in range(9):
+                    changes[i] = self.checksquare(i)
+                    colchanges[i] = self.checkcolumn(i)
+                    rowchanges[i] = self.checkrow(i)
+                poschanges[0] = self.checkposition()  # all numbers
+                if True not in (changes + rowchanges + colchanges + poschanges):
+                    break
+
+            repeat = True
+            while repeat:
+                self.push()
+                r, c, candidates = self.guess()
+                solved = False
+                while not solved and len(candidates) > 0:
+                    candidate = candidates.pop()
+                    self.fixposition(self.get_square(r, c), r, c, candidate)
+                    try:
+                        repeat = not self.solve()
+                    except BackTrack:
+                        print('backtracking bad guess {} at {}:{}'.format(candidate, r, c))
+                        self.pop()
+                        if len(candidates) == 1:
+                            self.fixposition(self.get_square(r, c), r, c, candidates.pop())
+                    except Ready:
+                        print('DONE!')
+                        return True
+
+        except Ready:
             return True
-        else:
-            self.push()
-            r, c, candidates = self.guess()
-            solved = False
-            while not solved:
-                candidate = candidates.pop()
-                self.sudoku[r][c] = candidate
-                self.rows[r].add(candidate)
-                self.columns[r].add(candidate)
-                self.squares[sq].add(candidate)
-                try:
-                    self.solve()
-                except BackTrack:
-                    print('backtracking bad guess {} at {}:{}'.format(candidate, r, c))
-                    self.pop()
-                    #  ok, bad guess, s[r][c] is not i.
 
     def push(self):
         self.stack.append((self.sudoku, self.rows, self.columns, self.squares,))
-        print('pushing...')
+        print('pushing... depth {}'.format(len(self.stack)))
 
     def pop(self):
         self.sudoku, self.rows, self.columns, self.squares = self.stack.pop()
-        print('popping...')
+        print('popping... depth {}'.format(len(self.stack)))
+
+    def get_square(self, r, c):
+        return r // 3 * 3 + c // 3
 
     def guess(self):
-        minmin = 9, 0, 0
+        minmin = [9, 0, 0, {}]
         for r in range(9):
             for c in range(9):
-                s = {list('123456789')}
-    def set(self, sudoku):
-        self.sudoku = sudoku
+                if self.sudoku[r][c] == '0':
+                    s = {i for i in list('123456789')}
+                    s -= self.rows[r]
+                    s -= self.columns[c]
+                    s -= self.squares[self.get_square(r, c)]
+                    if 0 < len(s) < minmin[0]:
+                        minmin = [len(s), r, c, s]
+                        if minmin[0] == 2:
+                            print('guessing * {}'.format(minmin))
+                            return minmin[1:]
+        print('guessing {}'.format(minmin))
+        return minmin[1:]
 
     def __str__(self):
         s = ''
