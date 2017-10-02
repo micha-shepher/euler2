@@ -1,4 +1,4 @@
-from sympy import divisors
+from sympy import divisors, gcd, primepi
 import sys
 
 class Euler243():
@@ -14,6 +14,17 @@ class Euler243():
                 s -= {j}
                 j += i
         return len(s)
+
+    def count2(self, n):
+        c = 0
+        for i in range(1, n, 2):
+            if gcd(n, i) == 1:
+                c += 1
+        return c
+
+    def count3(self, n):
+        return primepi(n)
+
     def factor(self, n):
         s = self.count(n)
         #print(s)
@@ -27,10 +38,10 @@ if __name__ == '__main__':
     e = Euler243()
     #
     #
-    for i in range(1, 6):
-        print(e.factor(2*3*5*7))
-    for i in range(1, 6):
-        print(e.factor(2*3*5*7))
+    #for i in range(1, 6):
+    #    print(e.factor(2*3*5*7))
+    #for i in range(1, 6):
+    #    print(e.factor(2*3*5*7))
     # print(e.factor(2 * 2 * 3 * 5 * 7))
     # print(e.factor(2*2*2*3*5*7))
     #
@@ -41,4 +52,5 @@ if __name__ == '__main__':
     # print(e.factor(2*3*5*7*11*13*17))
     # print(e.factor(2*3*5*7*11*13*17*19))
     # print(e.factor(2*3*5*7*11*13*17*19*23))
-    print(e.target)
+    print(e.count3(2*3*5*7*11*13*17*19*23*4))
+    #print(e.target)
