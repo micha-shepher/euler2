@@ -1,3 +1,4 @@
+from pprint import pprint
 from random import randint
 import sympy
 
@@ -20,15 +21,15 @@ class Euler81(object):
                   [81,  97,  5, 91, 61, 15, 97, 62,  8, 84],
                   [54,  72, 64, 82, 36, 84, 23, 81, 18,  2]]
 
-        self.m = list()
+        self.m = self.m5
 
-        with open('../p081.txt') as f:
-            mm = f.read().strip().split('\n')
-            for row in mm:
-                self.m.append([int(i) for i in row.split(',')])
+        #with open('../p081.txt') as f:
+        #    mm = f.read().strip().split('\n')
+        #    for row in mm:
+        #        self.m.append([int(i) for i in row.split(',')])
 
-            print(self.m)
-            print(len(self.m))
+        #    print(self.m)
+        #    print(len(self.m))
         self.top = len(self.m)-1
         self.complexity = 0
         self.cache = dict()
@@ -63,18 +64,30 @@ class Euler81(object):
                 key = '{}:{}'.format(r, c)
                 if key not in self.cache:
                     self.complexity += 1
-                    if c == self.top and r == self.top:
+                    if c == self.top: # in this case no min is necessary.
                         self.cache[key] = self.m[r][c]
-                    elif c == self.top:
-                        self.cache[key] = self.m[r][c] + self.cache['{}:{}'.format(r+1, c)]
-                    elif r == self.top:
-                        self.cache[key] = self.m[r][c] + self.cache['{}:{}'.format(r, c+1)]
                     else:
-                        self.cache[key] = self.m[r][c] + min(self.cache['{}:{}'.format(r, c+1)],
-                                                             self.cache['{}:{}'.format(r+1, c)])
+                        if r > 0:
+                            min1 = self.m[r-1][c]
+                        else:
+                            min1 = 0
+                        if r == self.top:
+                            min2 = 0
+                        else:
+                            min2 = self.m[r+1][c]
+                        if c == 0:
+                            min3 = 0
+                        else:
+                            min3 = self.m[r][c-1]
+                        self.cache[key] = self.m[r][c] + min(min1, min2, min3)
+        return min([self.cache['0:{}'.format(i)] for i in range(5)])
 
-        return self.cache['0:0']
-
+    def bottomup(self):
+        for c in range(self.top-1, -1, -1):
+            vec = list()
+            for r in range(5):
+                vec.append(self.m[r][c]+self.m[r][c+1])
+        pprint(self.m)
 
 if __name__ == '__main__':
     e = Euler81()
@@ -86,6 +99,9 @@ if __name__ == '__main__':
     #print(e.brute(0,0,0))
     #print(e.complexity)
     #e.complexity = 0
-    print(e.smart(0,0,0))
-    print(e.complexity)
-    print(e.cache)
+    #print('result={}'.format(e.smart(0,0,0)))
+    #print('complexity = {}'.format(e.complexity))
+    #for i in range(5):
+    #    print(e.cache['0:{}'.format(i)])
+    pprint(e.m)
+    e.bottomup()
