@@ -14,12 +14,13 @@ class Euler19(object):
             for month in months:
                 for day in range(1, month+1):
                     self.days.append(day)
-        print(self.days[:60])
-        print(self.days[-60:])
+        self.sundays = 0
         for loc, day in enumerate(self.days):
-            if day == 1 and loc % 7 == 0:
-                print (loc, day)
+            if day == 1 and loc % 7 == 6:
+                print (loc)
+                self.sundays += 1
 
 
 if __name__ == '__main__':
     e = Euler19()
+    print(e.sundays)
